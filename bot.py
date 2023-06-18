@@ -81,7 +81,7 @@ async def solde(ctx):
     money = handler.getUserBalance(ctx.author.id)
     if money:
         amount = handler.getUserBalance(ctx.author.id)
-        embed.add_field(name="Compte courant", value=f"`{'{:,}'.format(amount).replace(',', ' ')} EUR`")
+        embed.add_field(name="Compte courant", value=f"`{round(float('{:,}'.format(amount).replace(',', ' ')),2)} EUR`")
         acquisitions = handler.getAcquisitions(ctx.author.id)
         actions = ""
         for each in acquisitions:
@@ -203,14 +203,11 @@ async def topbourse(ctx):
     embed = discord.Embed(color=0x79c6c6, title="📊 Indice boursier international")
     
     agenciesInfo = handler.getAllAgenciesValues()
-    #print(agenciesInfo)
     allTickers = []
     allPastValues = []
     for n in agenciesInfo:
         allTickers.append(n[1])
         allPastValues.append(n[3])
-    #print(allTickers)
-    #print(allPastValues)
     qc = QuickChart()
     qc.width = 500
     qc.height = 300
