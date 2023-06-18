@@ -40,6 +40,6 @@ class MyCog(commands.Cog):
             pastValues.append(str(round(stockExchangeValue,2)))
             #print(pastValues)
             handler.updatePastValues(str(agency[2]), str(pastValues), round(stockExchangeValue,2))
-            print("Agencies values refreshed!")
+        print(f"Agencies values refreshed!")
 def setup(bot):
     bot.add_cog(MyCog(bot))
