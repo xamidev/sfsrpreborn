@@ -1,0 +1,10 @@
+To-do list:
+
+- Docstrings and assertions
+- Logging system
+- Better error handling
+- Code rework for better readability
+- /mission
+- /lancement
+- Fix weird stock exchange curves (sin)
+- Impact of agency activity (missions/launches..) on stock exchange value
