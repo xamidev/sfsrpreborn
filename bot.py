@@ -3,9 +3,11 @@ import discord
 import handler
 from quickchart import QuickChart
 import ast
+import random
+
+from discord.ui import Button , View
 
 TOKEN = os.environ.get('DISCORD_TOKEN')
-
 bot = discord.Bot()
 
 @bot.event
@@ -14,13 +16,15 @@ async def on_ready():
     print('Logged on as {0}!'.format(bot.user))
 
 bot.load_extension('mechanics')
+bot.load_extension('Cogs.Other.CogMission')
 
 @bot.slash_command(name="aide",description="Obtenir de l'aide à propos des différentes commandes disponibles")
 async def aide(ctx):   
     embed = discord.Embed(color=0x79c6c6, title="🌐 Page d'aide aux commandes")
     embed.add_field(name="**🏛 Bourse**", value="`/bourse` - Affiche les valeurs des différentes agences.\n`/acheter` - Achète des parts d'une agence donnée.\n`/vendre` - Vend des parts d'une agence donnée.\n`/actionnaires` - Affiche les actionnaires d'une agence.\n`/topagences` - Affiche les 5 agences les mieux côtées.\n`/setup` - Fait côter en bourse une agence.\n`/topbourse` - Affiche les cours des trois agences les mieux côtées.",inline = False)
     embed.add_field(name="**💵 Economie**", value="`/solde` - Affiche votre solde bancaire\n`/virement` - Vire de l'argent à quelqu'un\n`/topargent` - Affiche les 5 membres les plus riches.\n`/depot` - Dépose de l'argent dans le compte de votre agence.\n`/retrait` - Retire de l'argent de votre compte d'agence.", inline=False)
-    embed.add_field(name="**📚 Divers**", value="`/aide` - Affiche cette page d'aide aux commandes.\n`/mission` - Calcule le prix et lance une mission spatiale.")
+    embed.add_field(name="**🚀 Missions**", value="`/lancement` - Effectue le lancement d'une mission spatiale.\n`/mission` - Calcule le prix et lance une mission spatiale.")
+    embed.add_field(name="**📚 Divers**", value="`/aide` - Affiche cette page d'aide aux commandes.")
     await ctx.respond(embed=embed)
 
 @bot.slash_command(name="bourse", description="Afficher le cours d'une agence")
@@ -284,24 +288,33 @@ async def retrait(ctx, montant: discord.Option(float, required=True)):
         embed = discord.Embed(color=0xb02c3a, title=f"⛔️ Erreur de grade", description="Vous n'êtes le chef d'aucune agence spatiale.")
     await ctx.respond(embed=embed)
 
+@bot.slash_command(name="lancement", description="Lancer une mission spatiale.")
+async def lancement(ctx, lieu: discord.Option(str, required=True), carburant: discord.Option(str, required=True)):
+    """
+    Effectue le lancement d'une mission spatiale en prenant en compte la météo du lieu de lancement ainsi que le carburant de l'engin.
+
+    :param lieu: (str) lieu du lancement
+    :param carburant: (str) carburant de la fusée
+    """
+    weather = {"☀️ Ensoleillé":0.0,"☁️ Nuageux":0.0, "🌧️ Pluvieux":0.25, "🍃 Grand vent":0.10, "⚡ Orageux":0.75, "🌨️ Neigeux":0.80, "💨 Tempête":0.95, "🌪️ Ouragan":0.90} #float = chances d'échec
+    actualWeather, actualFailProbability = random.choice(list(weather.items()))
+
+    class YesNoButtons(discord.ui.View):
+
+        @discord.ui.button(label="Oui", style=discord.ButtonStyle.success, emoji="🚀")
+        async def yesbutton_callback(self, button, interaction):
+            if random.random()>actualFailProbability:
+                embed = discord.Embed(color=0x2c7ef2, title="✅ Lancement réussi", description="La météo s'est éclaircie en dernière minute, le lancement a réussi !")
+            else:
+                embed = discord.Embed(color=0xb02c3a, title=f"⛔️ Météo capricieuse", description="Malheureusement, la météo a été capricieuse aujourd'hui et le lancement a échoué. La fusée est irrécupérable.")
+            await interaction.response.edit_message(embed=embed, view=None)
+
+        @discord.ui.button(label="Non", style=discord.ButtonStyle.danger, emoji="❎")
+        async def nobutton_callback(self, button, interaction):
+            embed = discord.Embed(color=0xb02c3a, title="⛔️ Lancement annulé")
+            await interaction.response.edit_message(embed=embed, view=None)
+
+    embed = discord.Embed(color=0x2c7ef2, title="📌 Météo actuelle", description=f"La météo du moment sur votre pas de tir est : `{actualWeather}`\nSouhaitez-vous continuer ?")
+    await ctx.respond(embed=embed, view=YesNoButtons())
+
 bot.run(TOKEN)
-
-# --------------------------------:::::DEJA REALISE:::::--------------------------------
-# Système d'économies (comptes individuels)
-# Base de la bourse
-# Classements boursiers et économiques
-
-# ------------------------------:::::VERSION 1 DU BOT:::::------------------------------
-# mécaniques boursières : variations aléatoires chaque 24H, a chaque fin de mission, et a chaque achat/vente
-# comptes d'agence (restreindre la commande au chef d'agence par id: if ctx.author.id == ChiefID)
-# error handling des fautes de frappe dans les tickers: classe ErrorHandling dans handler
-# Merge avec le bot SFS Hermès et mise à niveau de l'économie 
-
-# ------------------------------:::::VERSION 2 DU BOT:::::------------------------------
-# Graphes en secteurs
-# Plus d'error handling
-# Logging de toutes les informations dans un dossier Logs
-# Séparation du code dans des Cogs
-# fix des bugs trouvés par la commu
-#------------------------------:::::VERSION 3 DU BOT:::::------------------------------
-# Commandes de modération
