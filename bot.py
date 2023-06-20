@@ -289,15 +289,10 @@ async def retrait(ctx, montant: discord.Option(float, required=True)):
     await ctx.respond(embed=embed)
 
 @bot.slash_command(name="lancement", description="Lancer une mission spatiale.")
-async def lancement(ctx, lieu: discord.Option(str, required=True), carburant: discord.Option(str, required=True)):
+async def lancement(ctx):
     """
-    Effectue le lancement d'une mission spatiale en prenant en compte la météo du lieu de lancement ainsi que le carburant de l'engin.
-
-    :param lieu: (str) lieu du lancement
-    :param carburant: (str) carburant de la fusée
+    Effectue le lancement d'une mission spatiale en prenant en compte la météo ainsi que le carburant de l'engin.
     """
-    weather = {"☀️ Ensoleillé":0.0,"☁️ Nuageux":0.0, "🌧️ Pluvieux":0.25, "🍃 Grand vent":0.10, "⚡ Orageux":0.75, "🌨️ Neigeux":0.80, "💨 Tempête":0.95, "🌪️ Ouragan":0.90} #float = chances d'échec
-    actualWeather, actualFailProbability = random.choice(list(weather.items()))
 
     class YesNoButtons(discord.ui.View):
 
@@ -314,7 +309,53 @@ async def lancement(ctx, lieu: discord.Option(str, required=True), carburant: di
             embed = discord.Embed(color=0xb02c3a, title="⛔️ Lancement annulé")
             await interaction.response.edit_message(embed=embed, view=None)
 
-    embed = discord.Embed(color=0x2c7ef2, title="📌 Météo actuelle", description=f"La météo du moment sur votre pas de tir est : `{actualWeather}`\nSouhaitez-vous continuer ?")
-    await ctx.respond(embed=embed, view=YesNoButtons())
-
+    class FuelDropdown(discord.ui.View):
+        @discord.ui.select(
+            placeholder="Choisissez un carburant.",
+            min_values=1,
+            max_values=1,
+            options = [
+                discord.SelectOption(
+                    label="Rocket candy",
+                    description="Peu toxique, fiabilité : 40%"
+                ),
+                discord.SelectOption(
+                    label="Éthanol",
+                    description="Peu polluant, fiabilité : 60%"
+                ),
+                discord.SelectOption(
+                    label="UDMH",
+                    description="Très toxique, fiabilité : 45%"
+                ),
+                discord.SelectOption(
+                    label="Aérozine 50",
+                    description="Moyennement toxique, fiabilité : 50%"
+                ),
+                discord.SelectOption(
+                    label="RP-1",
+                    description="Moyennement polluant, fiabilité : 55%"
+                ),
+                discord.SelectOption(
+                    label="Méthane",
+                    description="Très polluant, fiabilité : 50%"
+                ),
+                discord.SelectOption(
+                    label="Hydrogène",
+                    description="Neutre, fiabilité : 70%"
+                ),
+                discord.SelectOption(
+                    label="Uranium",
+                    description="Radioactif, fiabilité : 85%"
+                )
+            ]
+        )
+        async def fuel_callback(self, select, interaction):
+            weather = {"☀️ Ensoleillé":0.0,"☁️ Nuageux":0.0, "🌧️ Pluvieux":0.25, "🍃 Grand vent":0.10, "⚡ Orageux":0.75, "🌨️ Neigeux":0.80, "💨 Tempête":0.95, "🌪️ Ouragan":0.90} #float = chances d'échec
+            global actualFailProbability
+            actualWeather, actualFailProbability = random.choice(list(weather.items()))
+            embed = discord.Embed(color=0x2c7ef2, title="📌 Météo actuelle", description=f"La météo du moment sur votre pas de tir est : `{actualWeather}`\nSouhaitez-vous continuer ?")
+            await ctx.respond(embed=embed, view=YesNoButtons())
+    
+    embed = discord.Embed(color=0x2c7ef2, title="⛽ Carburant à utiliser", description="Vous devez choisir un carburant qui sera utilisé pour ce lancement.")
+    await ctx.respond(embed=embed, view=FuelDropdown())
 bot.run(TOKEN)
